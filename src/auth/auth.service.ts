@@ -3,7 +3,6 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -11,8 +10,6 @@ import { LoginDto } from './dto/login.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { randomBytes } from 'crypto';
-import nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -52,31 +49,20 @@ export class AuthService {
 
   async forgotPassword(dto: ForgotPasswordDto) {
     const email = String(dto.email || '').trim().toLowerCase();
+    const newPassword = String(dto.newPassword || '').trim();
     const user = await this.usersService.findByEmail(email);
 
-    // Always return the same response to avoid email enumeration.
     if (!user) {
-      return { message: 'If the email exists, a reset link has been sent.' };
+      throw new BadRequestException('User with this email does not exist');
     }
 
-    const token = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
     await this.usersService.update(user.id, {
-      resetPasswordToken: token,
-      resetPasswordExpiresAt: expiresAt,
+      password: newPassword,
+      resetPasswordToken: null,
+      resetPasswordExpiresAt: null,
     });
 
-    try {
-      await this.sendResetPasswordEmail(email, token);
-    } catch (error) {
-      await this.usersService.update(user.id, {
-        resetPasswordToken: null,
-        resetPasswordExpiresAt: null,
-      });
-      throw error;
-    }
-
-    return { message: 'If the email exists, a reset link has been sent.' };
+    return { message: 'Password updated successfully. Please login.' };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -99,47 +85,4 @@ export class AuthService {
     return { message: 'Password reset successful' };
   }
 
-  private async sendResetPasswordEmail(email: string, token: string) {
-    const baseUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
-    const resetLink = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
-    const host = String(process.env.SMTP_HOST || '').trim();
-    const user = String(process.env.SMTP_USER || '').trim();
-    const pass = String(process.env.SMTP_PASS || '').trim();
-    const from = String(process.env.MAIL_FROM || user || '').trim();
-    const port = Number(process.env.SMTP_PORT || 587);
-    const secure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
-
-    if (!host || !user || !pass || !from) {
-      throw new InternalServerErrorException(
-        'Mail service is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM.',
-      );
-    }
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: { user, pass },
-    });
-
-    await transporter.sendMail({
-      from,
-      to: email,
-      subject: 'Reset your ACC Constructions password',
-      text: `Use this link to reset your password: ${resetLink}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>ACC Constructions</h2>
-          <p>We received a request to reset your password.</p>
-          <p>
-            <a href="${resetLink}" style="background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;display:inline-block;">
-              Reset Password
-            </a>
-          </p>
-          <p>If you did not request this, you can ignore this email.</p>
-          <p>This link expires in 15 minutes.</p>
-        </div>
-      `,
-    });
-  }
 }
