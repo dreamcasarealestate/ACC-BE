@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/commo
 import { LaboursService } from './labours.service';
 import { CreateLabourDto } from './dto/create-labour.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { LabourStatus } from './entities/labour.entity';
 
 @ApiTags('labours')
 @Controller('labours')
@@ -26,12 +25,6 @@ export class LaboursController {
   @ApiOperation({ summary: 'Get a specific labour' })
   findOne(@Param('id') id: string) {
     return this.laboursService.findOne(+id);
-  }
-
-  @Patch(':id/status')
-  @ApiOperation({ summary: 'Activate or Deactivate labour' })
-  updateStatus(@Param('id') id: string, @Body('status') status: LabourStatus) {
-    return this.laboursService.updateStatus(+id, status);
   }
 
   @Patch(':id')

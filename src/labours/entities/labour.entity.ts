@@ -23,11 +23,6 @@ export enum WageType {
   MONTHLY = 'MONTHLY',
 }
 
-export enum LabourStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
-
 @Entity()
 export class Labour {
   @PrimaryGeneratedColumn()
@@ -56,9 +51,6 @@ export class Labour {
 
   @Column({ type: 'date', nullable: true })
   joiningDate: Date;
-
-  @Column({ type: 'varchar', default: LabourStatus.ACTIVE })
-  status: LabourStatus;
 
   @Column({ type: 'text', nullable: true })
   notes: string;
