@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Labour, LabourStatus } from './entities/labour.entity';
+import { Labour } from './entities/labour.entity';
 import { CreateLabourDto } from './dto/create-labour.dto';
 import { Attendance } from '../attendance/entities/attendance.entity';
 import { Payment } from '../payments/entities/payment.entity';
@@ -28,11 +28,6 @@ export class LaboursService {
 
   async findOne(id: number): Promise<Labour | null> {
     return this.laboursRepository.findOneBy({ id });
-  }
-
-  async updateStatus(id: number, status: LabourStatus) {
-    await this.laboursRepository.update(id, { status });
-    return this.findOne(id);
   }
 
   async update(id: number, payload: Partial<CreateLabourDto>) {

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { WorkType, WageType, LabourStatus } from '../entities/labour.entity';
+import { WorkType, WageType } from '../entities/labour.entity';
 
 export class CreateLabourDto {
   @ApiProperty()
@@ -39,11 +39,6 @@ export class CreateLabourDto {
   @IsString()
   @IsOptional()
   joiningDate?: Date;
-
-  @ApiPropertyOptional({ enum: LabourStatus, default: LabourStatus.ACTIVE })
-  @IsEnum(LabourStatus)
-  @IsOptional()
-  status?: LabourStatus;
 
   @ApiPropertyOptional()
   @IsString()

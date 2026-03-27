@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Labour, LabourStatus } from '../labours/entities/labour.entity';
+import { Labour } from '../labours/entities/labour.entity';
 import { Attendance, AttendanceStatus } from '../attendance/entities/attendance.entity';
 import { Payment, PaymentStatus } from '../payments/entities/payment.entity';
 
@@ -37,7 +37,7 @@ export class DashboardService {
     const monthStartStr = toDateString(monthStart);
     const monthEndStr = toDateString(monthEnd);
 
-    const totalActiveLabour = await this.laboursRepository.count({ where: { status: LabourStatus.ACTIVE } });
+    const totalLabour = await this.laboursRepository.count();
 
     const allAttendance = await this.attendanceRepository.find();
     const attendancesToday = allAttendance.filter((a) => String(a.date).slice(0, 10) === todayStr);
@@ -67,7 +67,7 @@ export class DashboardService {
       .reduce((sum, p) => sum + Number(p.balanceAmount), 0);
 
     return {
-      totalActiveLabour,
+      totalLabour,
       todayPresent,
       todayAbsent,
       pendingSettlementsCount: pendingPayments.length,
